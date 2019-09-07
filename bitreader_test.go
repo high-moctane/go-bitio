@@ -36,13 +36,14 @@ func TestBitRead(t *testing.T) {
 		},
 	}
 
+testLoop:
 	for idx, test := range tests {
 		r := NewBitReader(bytes.NewBuffer(test.in))
 		for i := 0; i < len(test.in)*8; i++ {
 			bit, err := r.ReadBit()
 			if err != nil {
 				t.Errorf("[%d] %dth bit unexpected error: %v", idx, i, err)
-				continue
+				continue testLoop
 			}
 			if bit != test.out[i] {
 				t.Errorf("[%d] %dth bit expected %d, but %d", idx, i, test.out[i], bit)
