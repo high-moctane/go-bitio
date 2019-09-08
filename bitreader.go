@@ -14,9 +14,9 @@ type BitReader struct {
 
 // NewBitReader returns a new BitReader. The reader changes the state of br
 // internally.
-func NewBitReader(br io.ByteReader) *BitReader {
+func NewBitReader(r io.ByteReader) *BitReader {
 	return &BitReader{
-		r:    br,
+		r:    r,
 		mask: 0b00000001,
 	}
 }
