@@ -35,5 +35,4 @@
 		byte, err := buf.ReadByte()	// 0b10110100, nil
 
 */
-
 package bitio
