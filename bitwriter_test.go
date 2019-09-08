@@ -102,6 +102,7 @@ testLoop:
 			}
 		}
 
+		// Flush is idempotent
 		for i := 0; i < 10; i++ {
 			if err := w.Flush(); err != nil {
 				t.Errorf("[%d] caught unexpected error: %v", idx, err)
@@ -162,6 +163,7 @@ testLoop:
 			}
 		}
 
+		// FlushWithOnes is idempotent
 		for i := 0; i < 10; i++ {
 			if err := w.FlushWithOnes(); err != nil {
 				t.Errorf("[%d] caught unexpected error: %v", idx, err)
