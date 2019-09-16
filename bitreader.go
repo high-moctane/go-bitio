@@ -1,6 +1,7 @@
 package bitio
 
 import (
+	"bytes"
 	"io"
 	"math/bits"
 )
@@ -34,4 +35,27 @@ func (br *BitReader) ReadBit() (bit int, err error) {
 	}
 
 	return bits.OnesCount8(br.buf & br.mask), nil
+}
+
+// ReadBits reads next n bits and returns them.
+// It returns the number of bits successfully read.
+// When didn't read any bit, bits will be nil.
+func (br *BitReader) ReadBits(n int) (bits []byte, l int, err error) {
+	buf := new(bytes.Buffer)
+	w := NewBitWriter(buf)
+
+	for ; l < n; l++ {
+		var bit int
+		bit, err = br.ReadBit()
+		if err != nil {
+			w.Flush()
+			bits = buf.Bytes()
+			return
+		}
+		w.WriteBit(bit)
+	}
+
+	w.Flush()
+	bits = buf.Bytes()
+	return
 }
