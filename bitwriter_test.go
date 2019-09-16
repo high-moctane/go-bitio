@@ -2,6 +2,7 @@ package bitio
 
 import (
 	"bytes"
+	"io"
 	"reflect"
 	"testing"
 )
@@ -182,6 +183,88 @@ testLoop:
 
 		if !reflect.DeepEqual(test.out, got) {
 			t.Errorf("[%d] expected %v, but got %v", idx, test.out, got)
+		}
+	}
+}
+
+func TestWriteBits(t *testing.T) {
+	type inType struct {
+		b []byte
+		n int
+	}
+	type outType struct {
+		b   []byte
+		l   int
+		err error
+	}
+
+	tests := []struct {
+		in  inType
+		out outType
+	}{
+		{
+			inType{nil, 0},
+			outType{nil, 0, nil},
+		},
+		{
+			inType{nil, 1},
+			outType{nil, 0, io.EOF},
+		},
+		{
+			inType{[]byte{}, 0},
+			outType{nil, 0, nil},
+		},
+		{
+			inType{[]byte{}, 1},
+			outType{nil, 0, io.EOF},
+		},
+		{
+			inType{[]byte{0b01010101}, -1},
+			outType{nil, 0, nil},
+		},
+		{
+			inType{[]byte{0b10101000}, 3},
+			outType{[]byte{0b10100000}, 3, nil},
+		},
+		{
+			inType{[]byte{0b10101001}, 8},
+			outType{[]byte{0b10101001}, 8, nil},
+		},
+		{
+			inType{[]byte{0b10101001, 0b11110011}, 8},
+			outType{[]byte{0b10101001}, 8, nil},
+		},
+		{
+			inType{[]byte{0b10101001, 0b11110011}, 12},
+			outType{[]byte{0b10101001, 0b11110000}, 12, nil},
+		},
+		{
+			inType{[]byte{0b10101001, 0b11110011, 0b10101001}, 20},
+			outType{[]byte{0b10101001, 0b11110011, 0b10100000}, 20, nil},
+		},
+	}
+
+	for idx, test := range tests {
+		buf := new(bytes.Buffer)
+		w := NewBitWriter(buf)
+
+		l, err := w.WriteBits(test.in.b, test.in.n)
+		if err != test.out.err {
+			t.Errorf("[%d] expected %v, but got %v", idx, test.out.err, err)
+			continue
+		}
+
+		if test.out.l != l {
+			t.Errorf("[%d] expected %v, but got %v", idx, test.out.l, l)
+		}
+
+		if err := w.Flush(); err != nil {
+			t.Errorf("[%d] unexpected error: %v", idx, err)
+		}
+
+		bits := buf.Bytes()
+		if !reflect.DeepEqual(test.out.b, bits) {
+			t.Errorf("[%d] expected %v, but got %v", idx, test.out.b, bits)
 		}
 	}
 }

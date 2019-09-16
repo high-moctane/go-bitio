@@ -1,6 +1,7 @@
 package bitio
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"math/bits"
@@ -86,4 +87,26 @@ func (bw *BitWriter) FlushWithOnes() error {
 	}
 
 	return nil
+}
+
+// WriteBits writes first n bits of bits.
+// It returns the number of bits successfully wrote.
+func (bw *BitWriter) WriteBits(bits []byte, n int) (l int, err error) {
+	b := make([]byte, len(bits))
+	copy(b, bits)
+	r := NewBitReader(bytes.NewBuffer(b))
+
+	for ; l < n; l++ {
+		var bit int
+		bit, err = r.ReadBit()
+		if err != nil {
+			return
+		}
+
+		if err = bw.WriteBit(bit); err != nil {
+			return
+		}
+	}
+
+	return
 }
